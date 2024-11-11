@@ -3,26 +3,27 @@
 namespace Tests\Life;
 
 use DOMDocument;
-use Life\RunGameCommand;
+use Life\Commands\RunGameCommand;
+use Life\Handlers\XmlFileHandler;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
-use function array_map;
-use function file_exists;
-use function range;
-use function unlink;
 
 final class IntegrationTest extends TestCase
 {
     private const OUTPUT_FILE = 'output.xml';
+    private const FIXTURES_XML_PATH = __DIR__ . '/__fixtures__/';
 
 
     /**
+     * Tests the execution of a game command, checking that the result matches the expected XML output.
+     *
      * @dataProvider getInputAndExpectedOutputFiles
      */
     public function testGame(string $inputFile, string $expectedOutputFile): void
     {
-        $commandTester = new CommandTester(new RunGameCommand());
+        $fileHandler = new XmlFileHandler();
+        $commandTester = new CommandTester(new RunGameCommand($fileHandler));
 
         $commandTester->execute(
             [
@@ -31,7 +32,7 @@ final class IntegrationTest extends TestCase
             ]
         );
 
-        $output = $this->loadXmlForComparison(self::OUTPUT_FILE);
+        $output = $this->loadXmlForComparison();
 
         Assert::assertXmlStringEqualsXmlFile(
             $expectedOutputFile,
@@ -40,32 +41,48 @@ final class IntegrationTest extends TestCase
         );
     }
 
-
+    /**
+     * Get dataProvider for tests
+     *
+     * @return mixed
+     */
     public function getInputAndExpectedOutputFiles(): array
     {
         $scenarios = range(1, 9);
 
         return array_map(
             static fn(int $scenario): array => [
-                __DIR__ . '/__fixtures__/scenario-' . $scenario . '/input.xml',
-                __DIR__ . '/__fixtures__/scenario-' . $scenario . '/output.xml',
+                self::FIXTURES_XML_PATH . 'scenario-' . $scenario . '/input.xml',
+                self::FIXTURES_XML_PATH . 'scenario-' . $scenario . '/output.xml',
             ],
             $scenarios
         );
     }
 
-
-    private function loadXmlForComparison(string $filePath): string
+    /**
+     * Load XML file for compare
+     *
+     * @return string
+     */
+    private function loadXmlForComparison(): string
     {
+        if (!file_exists(self::OUTPUT_FILE)) {
+            throw new \RuntimeException("Output file " . (self::OUTPUT_FILE) . " does not exist.");
+        }
+
         $dom = new DOMDocument();
         $dom->preserveWhiteSpace = false;
         $dom->formatOutput = true;
-        $dom->load($filePath);
+        $dom->load(self::OUTPUT_FILE);
 
         return $dom->saveXML();
     }
 
-
+    /**
+     * Clear test result data
+     *
+     * @return void
+     */
     protected function tearDown(): void
     {
         parent::tearDown();

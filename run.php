@@ -1,10 +1,20 @@
 <?php
 
-use Life\RunGameCommand;
+require 'vendor/autoload.php';
+
 use Symfony\Component\Console\Application;
+use Life\Commands\RunGameCommand;
+use Life\Handlers\XmlFileHandler;
 
-require './vendor/autoload.php';
+// Create instance file handler
+$fileHandler = new XmlFileHandler();
 
-$app = new Application();
-$app->add(new RunGameCommand());
-$app->run();
+// Create instance command with provide dependency
+$command = new RunGameCommand($fileHandler);
+
+// Create instance console application Symfony
+$application = new Application();
+$application->add($command);
+
+// Run application
+$application->run();

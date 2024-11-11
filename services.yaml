@@ -1,0 +1,5 @@
+services:
+  App\Handlers\FileHandlerInterface: '@App\Handlers\XmlFileHandler'
+
+  App\Handlers\XmlFileHandler:
+    arguments: []
