@@ -11,3 +11,5 @@ What next:
 2) Add additional unit tests for XML functionality and game class;
 3) Move logic to services from classes. Need finish with services DI task, that depend on Symfony DI flow
 4) Change Config class to Symfony config flow
+5) Restructure cubic algorithm complexity in Game.php (parallel execution, restructure)
+
